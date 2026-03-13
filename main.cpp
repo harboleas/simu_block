@@ -1,49 +1,60 @@
 #include <iostream>
-#include <vector>
-#include <fstream>
 #include <string>
 #include <unistd.h>
+#include <vector>
+#include "blocks.h"
 
 using namespace std;
 
 int main()
 {
-    fstream archivo_s1("signal1.txt");
-    fstream archivo_s2("signal2.txt");
 
-    vector<int> valores1;
-    vector<int> valores2;
-    int val;
+    Input in_1("signal1.txt");
+    Input in_2("signal2.txt");
 
-    while (archivo_s1 >> val)
-        valores1.push_back(val);
+    Wire a;
+    Wire b;
+    Wire c;
 
-    while (archivo_s2 >> val)
-        valores2.push_back(val);
+    Monitor m1("Mon 1");
+    Monitor m2("Mon 2");
+    Monitor m3("Mon 3");
 
+    in_1.Connect(&a);
+    in_1.Connect(&c);
+    in_2.Connect(&b);
 
-    int t_max = min(valores1.size(), valores2.size());
+    m1.Connect(&a);
+    m2.Connect(&b);
+    m3.Connect(&c);
 
-    string o1 = "Monitor 1: ";
-    string o2 = "Monitor 2: ";
+    vector<Input *> inputs;
+    inputs.push_back(&in_1);
+    inputs.push_back(&in_2);
+
+    vector<Monitor *> monitors;
+    monitors.push_back(&m1);
+    monitors.push_back(&m2);
+    monitors.push_back(&m3);
 
     // Ciclo de simulacion
-    for (int t = 0; t < t_max; t++)
+    for (int t = 0; t < 50; t++)
     {
         //update inputs
-        o1 += valores1[t] ? "-" : "_";
-        o2 += valores2[t] ? "-" : "_";
+        for (Input *in : inputs)
+            in->Update();
 
-        cout << o1 << endl;
-        cout << o2 << endl;
+        //update monitors
+        for (Monitor *mon : monitors)
+            mon->Update();
 
         usleep(50000);
         // sube dos lineas
-        cout << "\r\033[2F";
+        cout << "\r\033[" << monitors.size() << "F";
     }
 
-    cout << o1 << endl;
-    cout << o2 << endl;
+    for (Monitor *mon : monitors)
+        mon->Update();
 
     return 0;
 }
